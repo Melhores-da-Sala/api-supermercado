@@ -4,7 +4,6 @@ import csv
 from pydantic import BaseModel
 from routes import produtos
 
-
 class Cliente(BaseModel):
     id: int
     nome: str
@@ -24,6 +23,7 @@ class OrdemDeVenda(BaseModel):
     produto_id: int
 
 app = FastAPI()
+
 
 file_clientes = 'Clientes.csv'
 file_produtos = 'Produtos.csv'
@@ -49,5 +49,4 @@ if not os.path.exists(file_ordens):
         writer = csv.writer(file)
         writer.writerows(data)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+app.include_router(produtos.router)
