@@ -1,95 +1,207 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
+import os
 import csv
+from pydantic import BaseModel
 
 router = APIRouter()
 
+caminho_arquivo = "OrdemDeVendas.csv"
 
-# Modelo da ordem de venda
+
+# cria o arquivo se não existir
+if not os.path.exists(caminho_arquivo):
+    with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
+        dados = [
+            ["ID", "ID_CLIENTE", "ID_PRODUTO"]
+        ]
+        escritor = csv.writer(arquivo)
+        escritor.writerows(dados)
+else:
+    print("O arquivo já existe!")
+
+
 class OrdemDeVenda(BaseModel):
     id: int
     cliente_id: int
     produto_id: int
 
 
-arquivo_ordens = './routes/OrdemDeVendas.csv'
-
-
-# Retorna todas as ordens de venda
+# LISTAR TODAS
 @router.get("/ordens_de_venda")
 def ordens_de_venda():
 
     ordens = []
 
-    with open(arquivo_ordens, mode="r", newline="", encoding="utf-8") as arquivo:
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
         leitor = csv.reader(arquivo)
 
         for linha in leitor:
             if linha[0] == "ID":
                 continue
-
-            ordens.append({
-                "id": linha[0],
-                "id_cliente": linha[1],
-                "id_produto": linha[2]
-            })
-
-    if not ordens:
-        return {"aviso": "Nenhuma ordem de venda"}
+            else:
+                ordens.append({
+                    "id": linha[0],
+                    "cliente_id": linha[1],
+                    "produto_id": linha[2]
+                })
 
     return ordens
 
 
-# Adiciona uma nova ordem de venda
-@router.post("/add_cliente")
-async def add_cliente(ordem: OrdemDeVenda):
+# BUSCAR POR ID
+@router.get("/ordens_de_venda/{ordem_id}")
+def buscar_ordem(ordem_id: str):
 
-    ordens = []
-
-    # Lê as ordens existentes
-    with open(arquivo_ordens, mode='r', newline='', encoding='utf-8') as arquivo:
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
         leitor = csv.reader(arquivo)
 
         for linha in leitor:
-            if linha[0] == 'ID':
+            if linha[0] == ordem_id:
+                return {
+                    "id": linha[0],
+                    "cliente_id": linha[1],
+                    "produto_id": linha[2]
+                }
+
+    return {"ERRO": "ID não localizado"}
+
+
+# ADICIONAR
+@router.post("/add_ordem_de_venda")
+async def adicionar_ordem(ordem: OrdemDeVenda):
+
+    dados = [
+        ["ID", "ID_CLIENTE", "ID_PRODUTO"]
+    ]
+
+    ordens = []
+
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
+        leitor = csv.reader(arquivo)
+
+        for linha in leitor:
+            if linha[0] == "ID":
                 continue
-            ordens.append(linha)
+            else:
+                dados.append(linha)
 
-    # Adiciona a nova ordem
-    novo = [str(ordem.id), str(ordem.cliente_id), str(ordem.produto_id)]
-    ordens.append(novo)
+    nova_ordem = [ordem.id, ordem.cliente_id, ordem.produto_id]
+    dados.append(nova_ordem)
 
-    # Salva todas as ordens no CSV
-    with open(arquivo_ordens, mode='w', newline='', encoding='utf-8') as arquivo:
+    with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
         escritor = csv.writer(arquivo)
-        escritor.writerow(["ID", "ID_CLIENTE", "ID_PRODUTO"])
-        escritor.writerows(ordens)
+        escritor.writerows(dados)
+
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
+        leitor = csv.reader(arquivo)
+
+        for linha in leitor:
+            if linha[0] == "ID":
+                continue
+            else:
+                ordens.append({
+                    "id": linha[0],
+                    "cliente_id": linha[1],
+                    "produto_id": linha[2]
+                })
 
     return ordens
 
 
+# DELETAR
+@router.delete("/del_ordem_de_venda/{ordem_id}")
+def deletar_ordem(ordem_id: str):
 
-@router.delete("/del_cliente/{cliente_id}")
-def del_cliente(cliente_id: int):
+    dados = [
+        ["ID", "ID_CLIENTE", "ID_PRODUTO"]
+    ]
 
     ordens = []
 
-    with open(arquivo_ordens, mode='r', newline='', encoding='utf-8') as arquivo:
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
         leitor = csv.reader(arquivo)
+
         for linha in leitor:
-            if linha[0] == 'ID':
+            if linha[0] == "ID":
                 continue
-            ordens.append(linha)
+            else:
+                dados.append(linha)
 
-    # Separa as ordens que NÃO têm o ID informado
-    ordens_filtradas = [linha for linha in ordens if linha[0] != str(cliente_id)]
+    status = False
 
-    if len(ordens_filtradas) == len(ordens):
+    for linha in dados:
+        if linha[0] == ordem_id:
+            dados.pop(dados.index(linha))
+            status = True
+
+    if status != True:
         return {"ERRO": "ID informado não existe"}
 
-    with open(arquivo_ordens, mode='w', newline='', encoding='utf-8') as arquivo:
+    with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
         escritor = csv.writer(arquivo)
-        escritor.writerow(["ID", "ID_CLIENTE", "ID_PRODUTO"])
-        escritor.writerows(ordens_filtradas)
+        escritor.writerows(dados)
 
-    return ordens_filtradas
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
+        leitor = csv.reader(arquivo)
+
+        for linha in leitor:
+            if linha[0] == "ID":
+                continue
+            else:
+                ordens.append({
+                    "id": linha[0],
+                    "cliente_id": linha[1],
+                    "produto_id": linha[2]
+                })
+
+    return ordens
+
+
+# EDITAR
+@router.put("/edit_ordem_de_venda")
+async def editar_ordem(ordem: OrdemDeVenda):
+
+    dados = [
+        ["ID", "ID_CLIENTE", "ID_PRODUTO"]
+    ]
+
+    ordens = []
+
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
+        leitor = csv.reader(arquivo)
+
+        for linha in leitor:
+            if linha[0] == "ID":
+                continue
+            else:
+                dados.append(linha)
+
+    status = False
+
+    for linha in dados:
+        if linha[0] == str(ordem.id):
+            linha[1] = ordem.cliente_id
+            linha[2] = ordem.produto_id
+            status = True
+
+    if status != True:
+        return {"ERRO": "ID informado não existe"}
+
+    with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
+        escritor = csv.writer(arquivo)
+        escritor.writerows(dados)
+
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
+        leitor = csv.reader(arquivo)
+
+        for linha in leitor:
+            if linha[0] == "ID":
+                continue
+            else:
+                ordens.append({
+                    "id": linha[0],
+                    "cliente_id": linha[1],
+                    "produto_id": linha[2]
+                })
+
+    return ordens
