@@ -121,3 +121,47 @@ http://127.0.0.1:8000/docs
 Redoc:
 
 http://127.0.0.1:8000/redoc
+```
+---
+# Explicação da API
+- routes
+  - cliente.py
+     - GET
+       - def listar_produtos():
+         
+     - POST
+       - async def criar_produtos(produto: Produto):
+         
+     - DELETE
+       - async def atualizar_dados(produto_id: int, produto: Produto):
+         
+     - PUT
+       - def del_produto(produto_id: int):
+       
+  - produtos.py
+     - GET
+       -
+       
+     - POST
+       -
+       
+     - DELETE
+       -
+       
+     - PUT
+       -
+       
+    
+  - orden_de_venda.py
+     - GET
+       -
+       
+     - POST
+       -
+       
+     - DELETE
+       -
+       
+     - PUT
+       -
+       
