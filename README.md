@@ -126,7 +126,7 @@ http://127.0.0.1:8000/redoc
 # Explicação da API
 - routes
   - cliente.py
-     - GET
+     - ## GET
        - def listar_produtos():
          
      - POST
