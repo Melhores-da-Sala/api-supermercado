@@ -124,44 +124,44 @@ http://127.0.0.1:8000/redoc
 ```
 ---
 # Explicação da API
-- routes
-  - cliente.py
+- ## routes
+  - ## cliente.py
      - ## GET
        - def listar_produtos():
          
-     - POST
+     - ## POST
        - async def criar_produtos(produto: Produto):
          
-     - DELETE
+     - ## DELETE
        - async def atualizar_dados(produto_id: int, produto: Produto):
          
-     - PUT
+     - ## PUT
        - def del_produto(produto_id: int):
        
-  - produtos.py
-     - GET
+  - ## produtos.py
+     - ## GET
        -
        
-     - POST
+     - ## POST
        -
        
-     - DELETE
+     - ## DELETE
        -
        
-     - PUT
+     - ## PUT
        -
        
     
-  - orden_de_venda.py
-     - GET
+  - ## orden_de_venda.py
+     - ## GET
        -
        
-     - POST
+     - ## POST
        -
        
-     - DELETE
+     - ## DELETE
        -
        
-     - PUT
+     - ## PUT
        -
        
