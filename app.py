@@ -1,9 +1,14 @@
 from fastapi import FastAPI
-import os
 import csv
-from pydantic import BaseModel
+import os
+from routes.clientes import router as clientes_router
 from routes.ordens import router as ordens_router
+from pydantic import BaseModel
 
+app = FastAPI()
+
+app.include_router(clientes_router)
+app.include_router(ordens_router)
 
 class Cliente(BaseModel):
     id: int
@@ -18,19 +23,15 @@ class Produto(BaseModel):
     fornecedor: str
     quantidade: int
 
-class OrdemDeVenda(BaseModel):
+class OrdemDeVenda(BaseModel):  
     id: int
     cliente_id: int
     produto_id: int
 
-app = FastAPI()
 
-# CONECTA O ROUTER NO APP AQUI
-app.include_router(ordens_router)
-
-file_clientes = "./routes/Clientes.csv"
-file_produtos = "./routes/Produtos.csv"
-file_ordens = "./routes/OrdemDeVendas.csv"
+file_clientes = './routes/Clientes.csv'
+file_produtos = './routes/Produtos.csv'
+file_ordens = './routes/OrdemDeVendas.csv'
 
 # ----------------- INICIALIZAÇÃO DOS ARQUIVOS CSV -----------------
 if not os.path.exists(file_clientes):

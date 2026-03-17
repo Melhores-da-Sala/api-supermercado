@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 router = APIRouter()
 
-caminho_arquivo = "OrdemDeVendas.csv"
+caminho_arquivo = "./routes/OrdemDeVendas.csv"
 
 
 # =========================
@@ -14,7 +14,7 @@ caminho_arquivo = "OrdemDeVendas.csv"
 if not os.path.exists(caminho_arquivo):
     with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
         escritor = csv.writer(arquivo)
-        escritor.writerow(["ID_ORDEM", "ID_CLIENTE", "ID_PRODUTO"])
+        escritor.writerow(["id", "cliente_id", "produto_id"])
 
 
 # =========================
@@ -35,7 +35,7 @@ def gerar_id():
         leitor = csv.reader(arquivo)
 
         for linha in leitor:
-            if linha[0] == "ID_ORDEM":
+            if linha[0] == "id":
                 continue
             ids.append(int(linha[0]))
 
@@ -56,7 +56,7 @@ def ordens_de_venda():
         leitor = csv.reader(arquivo)
 
         for linha in leitor:
-            if linha[0] == "ID_ORDEM":
+            if linha[0] == "id":
                 continue
 
             ordens.append({
@@ -78,7 +78,7 @@ def buscar_ordem(ordem_id: int):
         leitor = csv.reader(arquivo)
 
         for linha in leitor:
-            if linha[0] == "ID_ORDEM":
+            if linha[0] == "id":
                 continue
 
             if int(linha[0]) == ordem_id:
@@ -127,14 +127,14 @@ async def adicionar_ordem(ordem: OrdemDeVenda):
 @router.delete("/del_ordem_de_venda/{ordem_id}")
 def deletar_ordem(ordem_id: int):
 
-    dados = [["ID_ORDEM", "ID_CLIENTE", "ID_PRODUTO"]]
+    dados = [["id", "cliente_id", "produto_id"]]
     status = False
 
     with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
         leitor = csv.reader(arquivo)
 
         for linha in leitor:
-            if linha[0] == "ID_ORDEM":
+            if linha[0] == "id":
                 continue
 
             if int(linha[0]) == ordem_id:
@@ -159,14 +159,14 @@ def deletar_ordem(ordem_id: int):
 @router.put("/edit_ordem_de_venda/{ordem_id}")
 async def editar_ordem(ordem_id: int, ordem: OrdemDeVenda):
 
-    dados = [["ID_ORDEM", "ID_CLIENTE", "ID_PRODUTO"]]
+    dados = [["id", "cliente_id", "produto_id"]]
     status = False
 
     with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
         leitor = csv.reader(arquivo)
 
         for linha in leitor:
-            if linha[0] == "ID_ORDEM":
+            if linha[0] == "id":
                 continue
 
             if int(linha[0]) == ordem_id:
