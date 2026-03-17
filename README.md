@@ -124,44 +124,52 @@ http://127.0.0.1:8000/redoc
 ```
 ---
 # Explicação da API
-- ## routes
-  - ## cliente.py
-     - ## GET
-       - def listar_produtos():
-         
-     - ## POST
-       - async def criar_produtos(produto: Produto):
-         
-     - ## DELETE
-       - async def atualizar_dados(produto_id: int, produto: Produto):
-         
-     - ## PUT
-       - def del_produto(produto_id: int):
-       
-  - ## produtos.py
-     - ## GET
-       -
-       
-     - ## POST
-       -
-       
-     - ## DELETE
-       -
-       
-     - ## PUT
-       -
-       
-    
-  - ## orden_de_venda.py
-     - ## GET
-       -
-       
-     - ## POST
-       -
-       
-     - ## DELETE
-       -
-       
-     - ## PUT
-       -
-       
+
+### 📄 `cliente.py`
+Gerencia o cadastro de clientes com foco em integridade de dados.
+
+* <kbd> <font color="green">**GET**</font> </kbd> **`listar_clientes()`**
+  - **Lógica:** Abre o arquivo `Clientes.csv` em modo leitura (`r`), converte as linhas para dicionários e retorna a lista completa.
+
+* <kbd> <font color="orange">**POST**</font> </kbd> **`criar_clientes()`**
+  - **ID Único:** Inicia a variável `novo_id` em 1. O código percorre o CSV e, para cada registro encontrado, atualiza: `novo_id = id_da_linha + 1`. Isso garante que o novo ID seja sempre o próximo da sequência.
+  - **CPF Único:** Antes de salvar, o sistema faz um loop no arquivo comparando o CPF enviado. Se houver duplicidade, o cadastro é interrompido com uma mensagem de erro.
+
+* <kbd> <font color="blue">**PUT**</font> </kbd> **`atualizar_dados()`**
+  - **Lógica:** Localiza o cliente pelo ID informado na URL. Se encontrado, substitui os valores daquela linha pelos novos dados e reescreve o arquivo CSV inteiro.
+
+* <kbd> <font color="red">**DELETE**</font> </kbd> **`del_cliente()`**
+  - **Lógica:** Lê o arquivo e gera uma nova lista de dados **ignorando** a linha que possui o ID selecionado. Em seguida, salva o arquivo apenas com os registros restantes.
+
+---
+
+### 📄 `produtos.py`
+Responsável pelo controle de inventário e fornecedores.
+
+* <kbd> <font color="green">**GET**</font> </kbd> **`listar_produtos()`**
+  - **Lógica:** Consulta o `Produtos.csv` e retorna o estado atual do estoque (nome, fornecedor e quantidade).
+
+* <kbd> <font color="orange">**POST**</font> </kbd> **`criar_produtos()`**
+  - **ID Automático:** Segue a mesma lógica de varredura (Último ID + 1) para manter a organização dos itens.
+
+* <kbd> <font color="blue">**PUT**</font> </kbd> **`atualizar_dados()`**
+  - **Lógica:** Utilizado para editar informações do produto ou atualizar a quantidade em estoque após reposições.
+
+* <kbd> <font color="red">**DELETE**</font> </kbd> **`del_produto()`**
+  - **Lógica:** Remove o item do arquivo. Como os arquivos não possuem chaves estrangeiras físicas, a venda vinculada a este ID em outros arquivos permanecerá lá como um registro "órfão".
+
+---
+
+### 📄 `ordem_de_venda.py`
+Registra a transação comercial entre Clientes e Produtos.
+
+* <kbd> <font color="green">**GET**</font> </kbd> **`listar_vendas()`**
+  - **Lógica:** Retorna o histórico de todas as operações de venda realizadas.
+
+* <kbd> <font color="orange">**POST**</font> </kbd> **`criar_venda()`**
+  - **Lógica:** Recebe o `cliente_id` e o `produto_id`. Gera um `id_ordem` automático e grava a nova transação no arquivo `OrdemDeVendas.csv`.
+
+* <kbd> <font color="red">**DELETE**</font> </kbd> **`del_venda()`**
+  - **Lógica:** Permite a exclusão de um registro de venda através do ID da ordem.
+
+---
