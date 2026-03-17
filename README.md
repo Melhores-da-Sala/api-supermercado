@@ -1,31 +1,32 @@
-# 🛒 PROJETO API FLASK SUPERMERCADO
+# 🛒 PROJETO API FASTAPI SUPERMERCADO
 
 ## 📌 Descrição
 
-Nesta atividade, o grupo desenvolveu uma **API RESTful** fazendo o uso do **FastAPI**, que representa um sistema simples de administração de um supermercado.
+- Nesta atividade, o grupo desenvolveu uma **API RESTful** utilizando o **FastAPI**, que simula um sistema simples de gestão de um supermercado.
 
 Essa API faz com seja possível alterar dados armazenados em **arquivos CSV**, utilizando os **métodos HTTP**:
 
 - **GET:** Para **ler** ou buscar dados (ex: ver lista de produtos).
 - **POST:** Para **criar** novos dados (ex: cadastrar um usuário).
 - **PUT/PATCH:** Para **atualizar** dados (ex: mudar sua senha).
-- **DELETE:** Para **remover** dados (ex: apagar uma foto).
+- **DELETE:** Para **remover** dados (ex: apaga um dado). 
 
 ---
 
-# ⚙️ Tecnologias e linguagens utilizadas
+## ⚙️ Tecnologias Utilizadas
 
-- **Python**
-- **FastAPI**
-- **CSV** (para armazenamento de dados)
+- Python 
+- FastAPI  
+- CSV
 
 ---
 
-# 📁 Estrutura de Dados - Arquivos CSV
+## 📁 Estrutura de Dados (CSV)
 
 Essa API gerencia os arquivos:
 
-# 👤 Clientes.csv
+
+### 👤 Clientes.csv
 
 | Campo | Tipo | Descrição |
 |------|------|-----------|
@@ -33,45 +34,10 @@ Essa API gerencia os arquivos:
 | Nome | str | Nome do cliente |
 | Sobrenome | int | Sobrenome do cliente |
 | Data de nascimento | int-int-int | Data de nascimento |
-| CPF | str | CPF único |
+| CPF | str | CPF único | 
 
----
 
-# 📦 Produtos.csv
-
-| Campo | Tipo | Descrição |
-|------|------|-----------|
-| ID | int | Identificador único |
-| Nome | str | Nome do produto |
-| Fornecedor | str | Empresa fornecedora |
-| Quantidade | int | Quantidade em estoque |
-
----
-
-# 🧾 OrdemDeVendas.csv
-
-| Campo | Tipo | Descrição |
-|------|------|-----------|
-| ID da Ordem | int | Identificador único da venda |
-| Cliente | int | ID do cliente |
-| Produto | int | ID do produto |
-
----
-
-# 🔗 Endpoints da API
-
-## 👤 Clientes
-
-| Método | Endpoint | Descrição |
-|------|------|-----------|
-| GET | `/clientes` | Lista os clientes |
-| POST | `/clientes` | Adiciona novo cliente |
-| PUT | `/clientes` | Atualiza um cliente |
-| DELETE | `/clientes/{id}` | Remove um cliente |
-
----
-
-## 📦 Produtos
+### 📦 Produtos.csv
 
 | Método | Endpoint | Descrição |
 |------|------|-----------|
@@ -80,16 +46,43 @@ Essa API gerencia os arquivos:
 | PUT | `/produtos` | Atualiza um produto |
 | DELETE | `/produtos/{id}` | Remove um produto |
 
----
 
-## 🧾 Ordens de Venda
+### 🧾 OrdemDeVendas.csv
 
 | Método | Endpoint | Descrição |
 |------|------|-----------|
 | GET | `/ordens` | Lista as ordens de venda |
 | POST | `/ordens` | Cria nova ordem de venda |
 | PUT | `/ordens` | Atualiza uma ordem de venda |
-| DELETE | `/ordens/{id}` | Remove uma ordem de venda |
+| DELETE | `/ordens/{id}` | Remove uma ordem de venda | 
+
+
+# 🔗 Endpoints da API
+
+
+### 👤 Clientes
+
+ - GET / clientes - Lista todos clientes 
+ - POST / clientes - Adiciona novo cliente 
+ - PUT / clientes - Atualiza um cliente que já existe 
+ - DELETE / clientes - Remove um cliente 
+
+---
+
+### 📦 Produtos
+
+ - GET / produtos - Lista todos produtos 
+ - POST / produtos - Adiciona novo produto  
+ - PUT / produtos - Atualiza um produto que já existe 
+ - DELETE / produtos - Remove um produto 
+
+---
+
+### 🧾 Ordens de Venda
+- GET / ordens - Lista todas as ordens das vendas 
+- POST / ordens - Cria umas nova ordem para as vendas 
+ - PUT / ordens - Atualiza uma ordem que já existe 
+- DELETE / ordens - Remove uma ordem 
 
 ---
 
@@ -99,7 +92,6 @@ Essa API gerencia os arquivos:
 - Os **IDs são gerados automaticamente** pela API.
 - Os dados são persistidos em **arquivos CSV**.
 
----
 
 # ▶️ Como Executar o Projeto
 
@@ -107,3 +99,25 @@ Essa API gerencia os arquivos:
 
 ```bash
 git clone https://github.com/Melhores-da-Sala/api-supermercado
+
+2️⃣ Entrar na pasta do projeto
+cd api-supermercado
+
+3️⃣ Instalar as dependências
+pip install fastapi 
+pip install "fastapi[standard]"
+
+4️⃣ Executar a API
+fastapi dev app.py
+
+5️⃣ Acessar a documentação automática
+
+O FastAPI gera documentação automaticamente.
+
+Swagger UI:
+
+http://127.0.0.1:8000/docs
+
+Redoc:
+
+http://127.0.0.1:8000/redoc
