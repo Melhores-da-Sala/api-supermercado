@@ -8,200 +8,178 @@ router = APIRouter()
 caminho_arquivo = "OrdemDeVendas.csv"
 
 
-# cria o arquivo se não existir
+# =========================
+# CRIA ARQUIVO SE NÃO EXISTIR
+# =========================
 if not os.path.exists(caminho_arquivo):
     with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
-        dados = [
-            ["ID", "ID_CLIENTE", "ID_PRODUTO"]
-        ]
         escritor = csv.writer(arquivo)
-        escritor.writerows(dados)
-else:
-    print("O arquivo já existe!")
+        escritor.writerow(["ID_ORDEM", "ID_CLIENTE", "ID_PRODUTO"])
 
 
+# =========================
+# MODEL
+# =========================
 class OrdemDeVenda(BaseModel):
-    id: int
     cliente_id: int
     produto_id: int
 
 
+# =========================
+# GERAR ID ÚNICO
+# =========================
+def gerar_id():
+    ids = []
+
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
+        leitor = csv.reader(arquivo)
+
+        for linha in leitor:
+            if linha[0] == "ID_ORDEM":
+                continue
+            ids.append(int(linha[0]))
+
+    if not ids:
+        return 1
+
+    return max(ids) + 1
+
+
+# =========================
 # LISTAR TODAS
+# =========================
 @router.get("/ordens_de_venda")
 def ordens_de_venda():
-
     ordens = []
 
     with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
         leitor = csv.reader(arquivo)
 
         for linha in leitor:
-            if linha[0] == "ID":
+            if linha[0] == "ID_ORDEM":
                 continue
-            else:
-                ordens.append({
-                    "id": linha[0],
-                    "cliente_id": linha[1],
-                    "produto_id": linha[2]
-                })
+
+            ordens.append({
+                "id": int(linha[0]),
+                "cliente_id": int(linha[1]),
+                "produto_id": int(linha[2])
+            })
 
     return ordens
 
 
+# =========================
 # BUSCAR POR ID
+# =========================
 @router.get("/ordens_de_venda/{ordem_id}")
-def buscar_ordem(ordem_id: str):
+def buscar_ordem(ordem_id: int):
 
     with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
         leitor = csv.reader(arquivo)
 
         for linha in leitor:
-            if linha[0] == ordem_id:
+            if linha[0] == "ID_ORDEM":
+                continue
+
+            if int(linha[0]) == ordem_id:
                 return {
-                    "id": linha[0],
-                    "cliente_id": linha[1],
-                    "produto_id": linha[2]
+                    "id": int(linha[0]),
+                    "cliente_id": int(linha[1]),
+                    "produto_id": int(linha[2])
                 }
 
-    return {"ERRO": "ID não localizado"}
+    return {"erro": "ID não localizado"}
 
 
+# =========================
 # ADICIONAR
+# =========================
 @router.post("/add_ordem_de_venda")
 async def adicionar_ordem(ordem: OrdemDeVenda):
 
-    dados = [
-        ["ID", "ID_CLIENTE", "ID_PRODUTO"]
-    ]
-
-    ordens = []
+    dados = [["ID_ORDEM", "ID_CLIENTE", "ID_PRODUTO"]]
 
     with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
         leitor = csv.reader(arquivo)
 
         for linha in leitor:
-            if linha[0] == "ID":
+            if linha[0] == "ID_ORDEM":
                 continue
-            else:
-                dados.append(linha)
+            dados.append(linha)
 
-    nova_ordem = [ordem.id, ordem.cliente_id, ordem.produto_id]
+    novo_id = gerar_id()
+    nova_ordem = [novo_id, ordem.cliente_id, ordem.produto_id]
     dados.append(nova_ordem)
 
     with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
         escritor = csv.writer(arquivo)
         escritor.writerows(dados)
 
-    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
-        leitor = csv.reader(arquivo)
-
-        for linha in leitor:
-            if linha[0] == "ID":
-                continue
-            else:
-                ordens.append({
-                    "id": linha[0],
-                    "cliente_id": linha[1],
-                    "produto_id": linha[2]
-                })
-
-    return ordens
+    return {
+        "msg": "Ordem criada com sucesso",
+        "id": novo_id
+    }
 
 
+# =========================
 # DELETAR
+# =========================
 @router.delete("/del_ordem_de_venda/{ordem_id}")
-def deletar_ordem(ordem_id: str):
+def deletar_ordem(ordem_id: int):
 
-    dados = [
-        ["ID", "ID_CLIENTE", "ID_PRODUTO"]
-    ]
-
-    ordens = []
+    dados = [["ID_ORDEM", "ID_CLIENTE", "ID_PRODUTO"]]
+    status = False
 
     with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
         leitor = csv.reader(arquivo)
 
         for linha in leitor:
-            if linha[0] == "ID":
+            if linha[0] == "ID_ORDEM":
                 continue
-            else:
-                dados.append(linha)
 
-    status = False
+            if int(linha[0]) == ordem_id:
+                status = True
+                continue
 
-    for linha in dados:
-        if linha[0] == ordem_id:
-            dados.pop(dados.index(linha))
-            status = True
+            dados.append(linha)
 
-    if status != True:
-        return {"ERRO": "ID informado não existe"}
+    if not status:
+        return {"erro": "ID informado não existe"}
 
     with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
         escritor = csv.writer(arquivo)
         escritor.writerows(dados)
 
-    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
-        leitor = csv.reader(arquivo)
-
-        for linha in leitor:
-            if linha[0] == "ID":
-                continue
-            else:
-                ordens.append({
-                    "id": linha[0],
-                    "cliente_id": linha[1],
-                    "produto_id": linha[2]
-                })
-
-    return ordens
+    return {"msg": "Ordem deletada com sucesso"}
 
 
+# =========================
 # EDITAR
-@router.put("/edit_ordem_de_venda")
-async def editar_ordem(ordem: OrdemDeVenda):
+# =========================
+@router.put("/edit_ordem_de_venda/{ordem_id}")
+async def editar_ordem(ordem_id: int, ordem: OrdemDeVenda):
 
-    dados = [
-        ["ID", "ID_CLIENTE", "ID_PRODUTO"]
-    ]
-
-    ordens = []
+    dados = [["ID_ORDEM", "ID_CLIENTE", "ID_PRODUTO"]]
+    status = False
 
     with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
         leitor = csv.reader(arquivo)
 
         for linha in leitor:
-            if linha[0] == "ID":
+            if linha[0] == "ID_ORDEM":
                 continue
+
+            if int(linha[0]) == ordem_id:
+                dados.append([ordem_id, ordem.cliente_id, ordem.produto_id])
+                status = True
             else:
                 dados.append(linha)
 
-    status = False
-
-    for linha in dados:
-        if linha[0] == str(ordem.id):
-            linha[1] = ordem.cliente_id
-            linha[2] = ordem.produto_id
-            status = True
-
-    if status != True:
-        return {"ERRO": "ID informado não existe"}
+    if not status:
+        return {"erro": "ID informado não existe"}
 
     with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
         escritor = csv.writer(arquivo)
         escritor.writerows(dados)
 
-    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
-        leitor = csv.reader(arquivo)
-
-        for linha in leitor:
-            if linha[0] == "ID":
-                continue
-            else:
-                ordens.append({
-                    "id": linha[0],
-                    "cliente_id": linha[1],
-                    "produto_id": linha[2]
-                })
-
-    return ordens
+    return {"msg": "Ordem atualizada com sucesso"}
