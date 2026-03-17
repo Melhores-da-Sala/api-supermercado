@@ -1,121 +1,172 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 import csv
+import os
 
 router = APIRouter()
 
+caminho_arquivo = "./routes/Clientes.csv"
+
+
+
+if not os.path.exists(caminho_arquivo):
+    with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
+        escritor = csv.writer(arquivo)
+        escritor.writerow(["ID", "NOME", "SOBRENOME", "DATA_NASCIMENTO", "CPF"])
+
+
+
 class Cliente(BaseModel):
-    id: int
     nome: str
     sobrenome: str
     data_nascimento: str
     cpf: str
 
-file_clientes = './routes/Clientes.csv'
+
+
+def gerar_id():
+    ids = []
+
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
+        leitor = csv.reader(arquivo)
+
+        for linha in leitor:
+            if linha[0] == "ID":
+                continue
+            ids.append(int(linha[0]))
+
+    if not ids:
+        return 1
+
+    return max(ids) + 1
+
+
 
 @router.get("/listar_clientes")
 def listar_clientes():
     clientes = []
 
-    with open(file_clientes, mode="r", newline="", encoding="utf-8") as file:
-        reader = csv.reader(file)
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
+        leitor = csv.reader(arquivo)
 
-        next(reader, None)
-
-        for row in reader:
-            if len(row) < 5:
+        for linha in leitor:
+            if linha[0] == "ID":
                 continue
 
             clientes.append({
-                "id": int(row[0]),
-                "nome": row[1],
-                "sobrenome": row[2],
-                "data_nascimento": row[3],
-                "cpf": row[4]
+                "id": int(linha[0]),
+                "nome": linha[1],
+                "sobrenome": linha[2],
+                "data_nascimento": linha[3],
+                "cpf": linha[4]
             })
 
     return clientes
 
 
-@router.post("/add_clientes")
-def criar_cliente(cliente: Cliente):
-    with open(file_clientes, mode='r', newline='', encoding='utf-8') as file:
-        reader = csv.reader(file)
+@router.get("/listar_clientes/{cliente_id}")
+def buscar_cliente(cliente_id: int):
 
-        next(reader, None)
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
+        leitor = csv.reader(arquivo)
 
-        for row in reader:
-            if not row or len(row) < 2:
+        for linha in leitor:
+            if linha[0] == "ID":
                 continue
 
-            if int(row[0]) == cliente.id:  # ✅ dentro do for
-                return {"erro": "Cliente com este ID já Registrado."}
+            if int(linha[0]) == cliente_id:
+                return {
+                    "id": int(linha[0]),
+                    "nome": linha[1],
+                    "sobrenome": linha[2],
+                    "data_nascimento": linha[3],
+                    "cpf": linha[4]
+                }
 
-    with open(file_clientes, mode='a', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow([cliente.id, cliente.nome, cliente.sobrenome, cliente.data_nascimento, cliente.cpf])
+    return {"erro": "Cliente não encontrado"}
 
-    return {"mensagem": "Cliente registrado com sucesso."}  # ✅ fora do with
+
+
+@router.post("/add_clientes")
+async def criar_cliente(cliente: Cliente):
+
+    dados = [["ID", "NOME", "SOBRENOME", "DATA_NASCIMENTO", "CPF"]]
+
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
+        leitor = csv.reader(arquivo)
+
+        for linha in leitor:
+            if linha[0] == "ID":
+                continue
+            dados.append(linha)
+
+    novo_id = gerar_id()
+    dados.append([novo_id, cliente.nome, cliente.sobrenome, cliente.data_nascimento, cliente.cpf])
+
+    with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
+        escritor = csv.writer(arquivo)
+        escritor.writerows(dados)
+
+    return {
+        "mensagem": "Cliente registrado com sucesso",
+        "id": novo_id
+    }
 
 
 @router.put("/update_clientes/{cliente_id}")
-def atualizar_cliente(cliente_id: int, cliente: Cliente):
-    clientes = []
+async def atualizar_cliente(cliente_id: int, cliente: Cliente):
+
+    dados = [["ID", "NOME", "SOBRENOME", "DATA_NASCIMENTO", "CPF"]]
     encontrado = False
 
-    with open(file_clientes, mode="r", newline="", encoding="utf-8") as file:
-        reader = csv.reader(file)
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
+        leitor = csv.reader(arquivo)
 
-        next(reader, None)
-
-        for row in reader:
-            if not row or len(row) < 2:
+        for linha in leitor:
+            if linha[0] == "ID":
                 continue
 
-            if int(row[0]) == cliente_id:
-                clientes.append([cliente.id, cliente.nome, cliente.sobrenome, cliente.data_nascimento, cliente.cpf])
+            if int(linha[0]) == cliente_id:
+                dados.append([cliente_id, cliente.nome, cliente.sobrenome, cliente.data_nascimento, cliente.cpf])
                 encontrado = True
             else:
-                clientes.append(row)
+                dados.append(linha)
 
     if not encontrado:
-        return {"erro": "Cliente não encontrado."}
+        return {"erro": "Cliente não encontrado"}
 
-    with open(file_clientes, mode="w", newline="", encoding="utf-8") as file:
-        writer = csv.writer(file)
-
-        writer.writerow(["ID", "NOME", "SOBRENOME", "DATA_NASCIMENTO", "CPF"])
-        writer.writerows(clientes)
+    with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
+        escritor = csv.writer(arquivo)
+        escritor.writerows(dados)
 
     return {"mensagem": "Cliente atualizado com sucesso"}
 
 
+
 @router.delete("/delete_clientes/{cliente_id}")
 def deletar_cliente(cliente_id: int):
-    clientes = []
+
+    dados = [["ID", "NOME", "SOBRENOME", "DATA_NASCIMENTO", "CPF"]]
     encontrado = False
 
-    with open(file_clientes, mode="r", newline="", encoding="utf-8") as file:
-        reader = csv.reader(file)
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
+        leitor = csv.reader(arquivo)
 
-        next(reader, None)
-
-        for row in reader:
-            if not row or len(row) < 2:
+        for linha in leitor:
+            if linha[0] == "ID":
                 continue
 
-            if int(row[0]) == cliente_id:
+            if int(linha[0]) == cliente_id:
                 encontrado = True
-            else:
-                clientes.append(row)
+                continue
+
+            dados.append(linha)
 
     if not encontrado:
-        return {"erro": "Cliente não encontrado."}
+        return {"erro": "Cliente não encontrado"}
 
-    with open(file_clientes, mode="w", newline="", encoding="utf-8") as file:
-        writer = csv.writer(file)
+    with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
+        escritor = csv.writer(arquivo)
+        escritor.writerows(dados)
 
-        writer.writerow(["ID", "NOME", "SOBRENOME", "DATA_NASCIMENTO", "CPF"])
-        writer.writerows(clientes)
-
-    return {"mensagem": "Cliente deletado com sucesso."}
+    return {"mensagem": "Cliente deletado com sucesso"}
