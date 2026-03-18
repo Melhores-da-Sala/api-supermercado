@@ -28,19 +28,22 @@ class OrdemDeVenda(BaseModel):
 # =========================
 # GERAR ID ÚNICO
 # =========================
+arquivo_id_ordens = './routes/arquivo_id.txt'
 def gerar_id():
-    ids = []
-    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
-        leitor = csv.reader(arquivo)
-        for linha in leitor:
-            # BLINDAGEM: Se a linha for vazia ou o primeiro item não for número, pule.
-            if not linha or not linha[0].isdigit(): 
-                continue
-            ids.append(int(linha[0]))
-
-    if not ids:
-        return 1
-    return max(ids) + 1
+    # arquivo de controle de id
+    if not os.path.exists(arquivo_id_ordens):
+        with open(arquivo_id_ordens, 'w') as f:
+            f.write("0")
+    
+    with open(arquivo_id_ordens, 'r') as f:
+        ultimo_id = int(f.read().strip()) # usamos o strip para remover os espacos no final
+    
+    novo_id = ultimo_id + 1
+    
+    with open(arquivo_id_ordens, 'w') as f:
+        f.write(str(novo_id))
+        
+    return novo_id
 
 
 # =========================

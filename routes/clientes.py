@@ -13,21 +13,22 @@ class Cliente(BaseModel):
     data_nascimento: str
     cpf: str
 
+arquivo_id_clientes = './routes/arquivo_id.txt'
 def gerar_id():
-    ids = []
-
-    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
-        leitor = csv.reader(arquivo)
-
-        for linha in leitor:
-            if linha[0] == "ID":
-                continue
-            ids.append(int(linha[0]))
-
-    if not ids:
-        return 1
-
-    return max(ids) + 1
+    # arquivo de controle de id
+    if not os.path.exists(arquivo_id_clientes):
+        with open(arquivo_id_clientes, 'w') as f:
+            f.write("0")
+    
+    with open(arquivo_id_clientes, 'r') as f:
+        ultimo_id = int(f.read().strip()) # usamos o strip para remover os espacos no final
+    
+    novo_id = ultimo_id + 1
+    
+    with open(arquivo_id_clientes, 'w') as f:
+        f.write(str(novo_id))
+        
+    return novo_id
 
 
 
@@ -73,47 +74,31 @@ def buscar_cliente(cliente_id: int):
                 }
 
     return {"erro": "Cliente não encontrado"}
-
-# verfica se o cpf ja existe no arquivo
-def cpf_existe(cpf: str) -> bool:
-    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
-        leitor = csv.reader(arquivo)
-        for linha in leitor:
-            if not linha or linha[0] == "ID":
-                continue
-            cpf_no_csv = linha[4].strip()
-            cpf_enviado = cpf.strip()
-            if cpf_no_csv == cpf_enviado:
-                return True
-    return False
-
-@router.post("/add_clientes")
+@router.post("/clientes")
 async def criar_cliente(cliente: Cliente):
-    
-    if cpf_existe(cliente.cpf):
-        return {"erro": "CPF já registrado"}
-    
-    dados = [["ID", "NOME", "SOBRENOME", "DATA_NASCIMENTO", "CPF"]]
+    data = [["ID", "NOME", "SOBRENOME", "DATA_NASCIMENTO", "CPF"]]
+    cpf_enviado = cliente.cpf.strip()
 
-    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
-        leitor = csv.reader(arquivo)
-        for linha in leitor:
-            if not linha or linha[0] == "ID":
+    with open(caminho_arquivo, mode='r', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if not row or row[0] == "ID":
                 continue
             
-            dados.append(linha)
-        
-    novo_id = gerar_id() 
-    dados.append([novo_id, cliente.nome, cliente.sobrenome, cliente.data_nascimento, cliente.cpf])
+            if row[4].strip() == cpf_enviado:
+                return {"ERRO": "Este CPF já está cadastrado!"}
+            
+            data.append(row)
+    
+    novo_id = gerar_id()
+    
+    data.append([novo_id, cliente.nome, cliente.sobrenome, cliente.data_nascimento, cliente.cpf])
 
-    with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
-        escritor = csv.writer(arquivo)
-        escritor.writerows(dados)
+    with open(caminho_arquivo, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerows(data)
 
-    return {
-        "mensagem": "Cliente registrado com sucesso",
-        "id": novo_id
-    }
+    return {"mensagem": "Cliente adicionado com sucesso", "id": novo_id}
 
 
 @router.put("/update_clientes/{cliente_id}")

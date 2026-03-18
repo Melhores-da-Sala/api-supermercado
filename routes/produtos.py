@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 import csv
+import os
 
 router = APIRouter()
 file_produtos = './routes/Produtos.csv'
@@ -12,19 +13,22 @@ class Produto(BaseModel):
 # =========================
 # GERAR ID ÚNICO
 # =========================
+arquivo_id_produtos = './routes/arquivo_id_produtos.txt'
 def gerar_id():
-    ids = []
-    with open(file_produtos, mode="r", newline="", encoding="utf-8") as arquivo:
-        leitor = csv.reader(arquivo)
-        for linha in leitor:
-            # BLINDAGEM: Se a linha for vazia ou o primeiro item não for número, pule.
-            if not linha or not linha[0].isdigit(): 
-                continue
-            ids.append(int(linha[0]))
-
-    if not ids:
-        return 1
-    return max(ids) + 1
+    # arquivo de controle de id
+    if not os.path.exists(arquivo_id_produtos):
+        with open(arquivo_id_produtos, 'w') as f:
+            f.write("0")
+    
+    with open(arquivo_id_produtos, 'r') as f:
+        ultimo_id = int(f.read().strip()) # usamos o strip para remover os espacos no final
+    
+    novo_id = ultimo_id + 1
+    
+    with open(arquivo_id_produtos, 'w') as f:
+        f.write(str(novo_id))
+        
+    return novo_id
 
 ################################### GET ######################################
 @router.get("/produtos")
