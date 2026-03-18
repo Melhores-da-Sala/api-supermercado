@@ -173,3 +173,11 @@ Registra a transação comercial entre Clientes e Produtos.
   - **Lógica:** Permite a exclusão de um registro de venda através do ID da ordem.
 
 ---
+
+# INTEGRANTES
+- Nicolas Luciani
+- Gustavo Lopes Zampiron
+- Samuel Gustavo Gracias Dio Falco 
+- Gabriel Leonardo Vicente Cancian
+- Matheus Lima Catarucci
+- Moisés Gabriel Tafarello
