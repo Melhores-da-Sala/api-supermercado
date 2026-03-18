@@ -7,22 +7,11 @@ router = APIRouter()
 
 caminho_arquivo = "./routes/Clientes.csv"
 
-
-
-if not os.path.exists(caminho_arquivo):
-    with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
-        escritor = csv.writer(arquivo)
-        escritor.writerow(["ID", "NOME", "SOBRENOME", "DATA_NASCIMENTO", "CPF"])
-
-
-
 class Cliente(BaseModel):
     nome: str
     sobrenome: str
     data_nascimento: str
     cpf: str
-
-
 
 def gerar_id():
     ids = []
@@ -85,22 +74,36 @@ def buscar_cliente(cliente_id: int):
 
     return {"erro": "Cliente não encontrado"}
 
-
+# verfica se o cpf ja existe no arquivo
+def cpf_existe(cpf: str) -> bool:
+    with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
+        leitor = csv.reader(arquivo)
+        for linha in leitor:
+            if not linha or linha[0] == "ID":
+                continue
+            cpf_no_csv = linha[4].strip()
+            cpf_enviado = cpf.strip()
+            if cpf_no_csv == cpf_enviado:
+                return True
+    return False
 
 @router.post("/add_clientes")
 async def criar_cliente(cliente: Cliente):
-
+    
+    if cpf_existe(cliente.cpf):
+        return {"erro": "CPF já registrado"}
+    
     dados = [["ID", "NOME", "SOBRENOME", "DATA_NASCIMENTO", "CPF"]]
 
     with open(caminho_arquivo, mode="r", newline="", encoding="utf-8") as arquivo:
         leitor = csv.reader(arquivo)
-
         for linha in leitor:
-            if linha[0] == "ID":
+            if not linha or linha[0] == "ID":
                 continue
+            
             dados.append(linha)
-
-    novo_id = gerar_id()
+        
+    novo_id = gerar_id() 
     dados.append([novo_id, cliente.nome, cliente.sobrenome, cliente.data_nascimento, cliente.cpf])
 
     with open(caminho_arquivo, mode="w", newline="", encoding="utf-8") as arquivo:
